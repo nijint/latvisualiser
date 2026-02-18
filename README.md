@@ -108,10 +108,8 @@ Configurable refresh intervals
 Multi-host comparison mode
 
 ## 👨‍💻 Author
-
 @nijint
 (Developed as a learning-focused networking and Haskell experimentation project)
-=======
-# latvisualiser
-A minimal Haskell-based terminal latency visualiser that monitors real-time network latency and renders a live ASCII graph with time and latency axes.
+
+
 
