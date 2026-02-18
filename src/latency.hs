@@ -15,13 +15,12 @@ graphHeight = 15
 main :: IO ()
 main = loop [] Nothing
 
--- previous latency stored to calculate jitter
+-- previous latenc stored to calculate jitter
 loop :: [Int] -> Maybe Int -> IO ()
 loop history prev = do
     out <- readProcess "ping" ["-c","1",host] ""
     let latency = extractLatency (lines out)
 
-    -- amplify change so graph moves more
     let adjusted =
             case (latency, prev) of
                 (Just v, Just p) -> Just (v + abs (v - p) * 2)
@@ -39,7 +38,6 @@ loop history prev = do
     threadDelay 1000000
     loop newHist latency
 
--- parse ping
 extractLatency :: [String] -> Maybe Int
 extractLatency [] = Nothing
 extractLatency (x:xs)
@@ -95,7 +93,7 @@ stats xs lastVal =
        ++ "ms   AVG " ++ show avg
        ++ "ms   MAX " ++ show mx ++ "ms"
 
--- NEW: latency trend detection
+
 trend :: [Int] -> String
 trend xs
     | length xs < 6 = "TREND: collecting data..."
