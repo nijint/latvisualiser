@@ -21,19 +21,14 @@ loop history prev = do
     out <- readProcess "ping" ["-c","1",host] ""
     let latency = extractLatency (lines out)
 
-    let adjusted =
-            case (latency, prev) of
-                (Just v, Just p) -> Just (v + abs (v - p) * 2)
-                (Just v, Nothing) -> Just v
-                _ -> Nothing
 
     let newHist =
-            case adjusted of
+            case latency of
                 Just v  -> takeLast maxSamples (history ++ [v])
                 Nothing -> history
 
     clearScreen
-    drawGraph newHist adjusted
+    drawGraph newHist latency
 
     threadDelay 1000000
     loop newHist latency
@@ -56,7 +51,8 @@ takeLast n xs = drop (length xs - min n (length xs)) xs
 drawGraph :: [Int] -> Maybe Int -> IO ()
 drawGraph [] _ = putStrLn "waiting..."
 drawGraph xs lastVal = do
-    let maxVal = max 1 (maximum xs)
+    let maxActual = maximum xs
+    let maxVal = max graphHeight (((maxActual + graphHeight - 1) `div` graphHeight) * graphHeight)
     let scaled = map (\v -> (v * graphHeight) `div` maxVal) xs
 
     putStrLn ("LATENCY GRAPH  host: " ++ host)
@@ -69,8 +65,8 @@ drawGraph xs lastVal = do
         | level <- reverse [1..graphHeight]
         ]
 
-    putStrLn ("     +" ++ replicate maxSamples '-')
-    putStrLn ("      time →")
+    putStrLn ("       +" ++ replicate maxSamples '-')
+    putStrLn ("        time →")
 
     putStrLn (stats xs lastVal)
     putStrLn (trend xs)
@@ -78,9 +74,9 @@ drawGraph xs lastVal = do
 -- Y axis labels
 yLabel :: Int -> Int -> String
 yLabel level maxVal =
-    let val = (level * maxVal) `div` graphHeight
+    let val = level * (maxVal `div` graphHeight)
         s   = show val ++ "ms"
-    in replicate (5 - length s) ' ' ++ s
+    in replicate (6 - length s) ' ' ++ s
 
 -- stats footer
 stats :: [Int] -> Maybe Int -> String
